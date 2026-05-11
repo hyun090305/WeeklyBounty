@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeeklyBounty Admin/Setter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Admin / Setter Panel (MVP)</h1>
+    <section class="card">
+      <h2>문제 관리</h2>
+      <ul>
+        <li>문제 생성/수정</li>
+        <li>상태 전환: scheduled/open/closed/grading/published</li>
+        <li>해설 등록, Best Solution 선택</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>익명 채점</h2>
+      <p>제출자 정보 없이 <code>anonymousCode</code> + 제출 본문만 노출</p>
+      <table>
+        <thead><tr><th>Anon Code</th><th>Score(0~7)</th><th>Comment</th></tr></thead>
+        <tbody><tr><td>A7K2M</td><td>6</td><td>핵심 아이디어 우수</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

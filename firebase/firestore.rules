@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function roleDoc() { return get(/databases/$(database)/documents/roles/$(request.auth.uid)); }
+    function isAdmin() { return isSignedIn() && roleDoc().data.isAdmin == true; }
+    function isSetter() { return isSignedIn() && roleDoc().data.isSetter == true; }
+    function isProblemSetter(problemId) {
+      return isSetter() && get(/databases/$(database)/documents/problems/$(problemId)).data.setterUid == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && !('rating' in request.resource.data)
+        && !('peakRating' in request.resource.data);
+      allow delete: if false;
+    }
+
+    match /roles/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /problems/{problemId} {
+      allow read: if resource.data.status == 'published' || (isSignedIn() && (isAdmin() || resource.data.setterUid == request.auth.uid));
+      allow create: if isSignedIn() && (isAdmin() || isSetter());
+      allow update: if isAdmin() || (isProblemSetter(problemId) && !( 'status' in request.resource.data && request.resource.data.status != resource.data.status));
+      allow delete: if isAdmin();
+    }
+
+    match /submissions/{submissionId} {
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.score == null
+        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.status == 'open';
+
+      allow read: if isSignedIn() && (
+        resource.data.authorUid == request.auth.uid
+        || isAdmin()
+        || isProblemSetter(resource.data.problemId)
+        || (get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'published' && resource.data.isPublic == true)
+      );
+
+      allow update: if isSignedIn() && (
+        (resource.data.authorUid == request.auth.uid
+          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'open'
+          && !('score' in request.resource.data)
+          && !('graderComment' in request.resource.data)
+          && !('gradedAt' in request.resource.data)
+        )
+        || ((isAdmin() || isProblemSetter(resource.data.problemId))
+          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'grading'
+          && request.resource.data.score is int
+          && request.resource.data.score >= 0
+          && request.resource.data.score <= 7)
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /ratingEvents/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+    }
+  }
+}

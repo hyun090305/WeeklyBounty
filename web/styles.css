@@ -1,0 +1,9 @@
+body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f7f7fb; color: #111; }
+.topbar { display:flex; justify-content: space-between; padding: 12px 20px; background:#fff; border-bottom:1px solid #ddd; }
+nav a { margin-left: 12px; text-decoration: none; color: #1f3a8a; }
+.container { max-width: 920px; margin: 20px auto; padding: 0 12px; }
+.card { background:#fff; border:1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+textarea { width:100%; min-height:220px; margin:8px 0; }
+.status strong { color:#065f46; }
+table { width:100%; border-collapse: collapse; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; }
