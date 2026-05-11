@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeeklyBounty</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>WeeklyBounty</h1>
+    <nav>
+      <a href="#problem">이번 주 문제</a>
+      <a href="#archive">아카이브</a>
+      <a href="#leaderboard">리더보드</a>
+      <a href="admin.html">Admin/Setter</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="problem" class="card">
+      <p class="status">Status: <strong id="statusBadge">OPEN</strong></p>
+      <h2>Week 1 by setterName</h2>
+      <p class="meta">태그: Number Theory · Functional Equation | 마감: 2026-05-18 21:00 KST</p>
+      <article class="statement">
+        <p><strong>Problem.</strong> Find all functions \(f: \mathbb{Z}_{>0} \to \mathbb{Z}_{>0}\) such that ...</p>
+      </article>
+    </section>
+
+    <section class="card">
+      <h3>내 제출 (Markdown + LaTeX)</h3>
+      <textarea placeholder="증명/아이디어를 작성하세요..."></textarea>
+      <label><input type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
+      <div><button>저장/수정</button></div>
+    </section>
+  </main>
+</body>
+</html>
