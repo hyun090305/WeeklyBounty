@@ -1,15 +1,90 @@
-body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f7f7fb; color: #111; }
-.topbar { display:flex; justify-content: space-between; align-items:center; gap:16px; padding: 12px 20px; background:#fff; border-bottom:1px solid #ddd; }
-nav a { margin-right: 12px; text-decoration: none; color: #1f3a8a; }
-.auth-row { display:flex; gap:8px; align-items:center; font-size:13px; }
-.container { max-width: 1100px; margin: 20px auto; padding: 0 12px; }
-.card { background:#fff; border:1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-textarea, input, select, button { width:100%; padding:8px; margin:6px 0; box-sizing:border-box; }
-textarea { min-height:180px; }
+:root {
+  --bg: #070b18;
+  --bg-2: #101a38;
+  --card: rgba(255, 255, 255, 0.72);
+  --line: rgba(255, 255, 255, 0.35);
+  --text: #0f172a;
+  --muted: #475569;
+  --accent: #4f46e5;
+  --accent-2: #22d3ee;
+}
+
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  background: radial-gradient(1200px 600px at 80% -10%, #1e3a8a 0%, transparent 50%),
+              radial-gradient(900px 500px at -10% 20%, #0ea5e9 0%, transparent 45%),
+              linear-gradient(145deg, var(--bg), var(--bg-2));
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.bg-orb { position: fixed; border-radius: 999px; filter: blur(80px); opacity: 0.25; z-index: 0; pointer-events: none; }
+.orb-1 { width: 340px; height: 340px; right: 8%; top: 10%; background: #7c3aed; }
+.orb-2 { width: 300px; height: 300px; left: 8%; bottom: 5%; background: #06b6d4; }
+
+.glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap:16px;
+  padding: 14px 26px;
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom:1px solid var(--line);
+}
+.brand-wrap h1 { margin: 0; letter-spacing: -0.02em; }
+.kicker { margin: 0; color: #334155; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; }
+nav a { margin-right: 14px; text-decoration: none; color: #1e293b; font-weight: 600; }
+nav a:hover { color: var(--accent); }
+.admin-link { color: #4338ca; }
+.auth-row { display:flex; gap:10px; align-items:center; font-size:13px; }
+
+.container { position: relative; z-index: 1; max-width: 1120px; margin: 24px auto 48px; padding: 0 14px; }
+.card {
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 20px 45px rgba(2, 6, 23, .20);
+}
+.problem-card { padding: 24px; }
+.problem-header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+
+textarea, input, select {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: rgba(255,255,255,.88);
+}
+textarea { min-height:220px; resize: vertical; line-height: 1.6; }
+
+.btn { border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer; width: auto; }
+.btn-primary { background: linear-gradient(120deg, var(--accent), #7c3aed); color: #fff; }
+.btn-secondary { background: #e2e8f0; color: #1e293b; }
+.btn:hover { transform: translateY(-1px); }
+.action-row { margin-top: 6px; }
+
 .status strong { color:#065f46; text-transform:uppercase; }
-.statement { line-height:1.55; }
-.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-table { width:100%; border-collapse: collapse; }
-th, td { border:1px solid #ddd; padding:8px; text-align:left; vertical-align:top; }
-.muted { color:#666; font-size: 12px; }
-@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+.pill { background: rgba(79,70,229,.12); color: #3730a3; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.meta { color: var(--muted); }
+.statement { line-height:1.7; background: rgba(255,255,255,.55); border-radius: 12px; padding: 14px; }
+.toggle-row { color: #334155; font-weight: 500; }
+
+ol#leaderboardList li { padding: 6px 0; border-bottom: 1px dashed #cbd5e1; }
+
+ table { width:100%; border-collapse: collapse; overflow: hidden; border-radius: 12px; }
+th, td { border:1px solid #dbe3f3; padding:10px; text-align:left; vertical-align:top; background: rgba(255,255,255,.7); }
+th { background: rgba(241,245,249,.9); }
+
+@media (max-width: 980px) {
+  .topbar { flex-wrap: wrap; }
+  nav { width: 100%; }
+}
