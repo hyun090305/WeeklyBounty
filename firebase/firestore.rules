@@ -34,6 +34,9 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.score == null
+        && request.resource.data.problemId is string
+        && !exists(/databases/$(database)/documents/submissions/$(request.resource.data.problemId + '_' + request.auth.uid))
+        && request.resource.id == request.resource.data.problemId + '_' + request.auth.uid
         && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.status == 'open';
 
       allow read: if isSignedIn() && (
@@ -67,7 +70,14 @@ service cloud.firestore {
 
     match /comments/{commentId} {
       allow read: if true;
-      allow create: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.problemId is string
+        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.status == 'published'
+        && (request.resource.data.submissionId == null || (
+          get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.problemId == request.resource.data.problemId
+          && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.isPublic == true
+        ));
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.authorUid == request.auth.uid);
     }
   }

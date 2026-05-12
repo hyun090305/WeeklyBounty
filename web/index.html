@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WeeklyBounty</title>
   <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -15,23 +19,40 @@
       <a href="#leaderboard">리더보드</a>
       <a href="admin.html">Admin/Setter</a>
     </nav>
+    <div class="auth-row">
+      <span id="authState">로그아웃 상태</span>
+      <button id="loginBtn">Google 로그인</button>
+      <button id="logoutBtn" hidden>로그아웃</button>
+    </div>
   </header>
 
   <main class="container">
     <section id="problem" class="card">
-      <p class="status">Status: <strong id="statusBadge">OPEN</strong></p>
-      <h2>Week 1 by setterName</h2>
-      <p class="meta">태그: Number Theory · Functional Equation | 마감: 2026-05-18 21:00 KST</p>
-      <article class="statement">
-        <p><strong>Problem.</strong> Find all functions \(f: \mathbb{Z}_{>0} \to \mathbb{Z}_{>0}\) such that ...</p>
-      </article>
+      <p class="status">Status: <strong id="statusBadge">-</strong></p>
+      <h2 id="problemTitle">문제 로딩 중...</h2>
+      <p id="problemMeta" class="meta"></p>
+      <article id="problemStatement" class="statement"></article>
     </section>
 
     <section class="card">
       <h3>내 제출 (Markdown + LaTeX)</h3>
-      <textarea placeholder="증명/아이디어를 작성하세요..."></textarea>
-      <label><input type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
-      <div><button>저장/수정</button></div>
+      <textarea id="submissionInput" placeholder="증명/아이디어를 작성하세요..."></textarea>
+      <label><input id="publicToggle" type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
+      <div><button id="saveSubmissionBtn">저장/수정</button></div>
+      <small id="submissionNote"></small>
+    </section>
+
+    <section id="leaderboard" class="card">
+      <h3>전체 리더보드 (Published 결과 기준)</h3>
+      <ol id="leaderboardList"></ol>
+    </section>
+
+    <section id="archive" class="card">
+      <h3>문제 아카이브</h3>
+      <table>
+        <thead><tr><th>Week</th><th>Setter</th><th>태그</th><th>공개일</th><th>상태</th></tr></thead>
+        <tbody id="archiveBody"></tbody>
+      </table>
     </section>
   </main>
 </body>
