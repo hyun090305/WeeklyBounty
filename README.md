@@ -1,4 +1,4 @@
-# WeeklyBounty (Korean Math Olympiad Weekly Proof Competition)
+# 수올러 (Suoller)
 
 한국 수학올림피아드 커뮤니티용 Weekly Proof Competition 플랫폼입니다.
 
@@ -31,7 +31,7 @@
 
 ## 실행 전 설정
 
-`web/app.js`, `web/admin.js`의 `WEEKLY_BOUNTY_FIREBASE_CONFIG` 또는 전역 변수 주입으로 Firebase 설정을 넣어야 합니다.
+`web/app.js`, `web/admin.js`의 `SUOLLER_FIREBASE_CONFIG` 또는 전역 변수 주입으로 Firebase 설정을 넣어야 합니다.
 
 ## 배포
 

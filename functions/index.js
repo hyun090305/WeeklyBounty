@@ -1,5 +1,5 @@
 /**
- * WeeklyBounty Firebase Functions (MVP)
+ * Suoller Firebase Functions (MVP)
  */
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
