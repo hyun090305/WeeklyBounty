@@ -7,6 +7,20 @@ import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.13.0/fireba
 
 const el = (id) => document.getElementById(id);
 
+function initAdminTabs() {
+  const tabs = document.querySelectorAll('.admin-tab');
+  const panes = document.querySelectorAll('.admin-pane');
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.classList.remove('active'));
+      panes.forEach((pane) => pane.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab)?.classList.add('active');
+    });
+  });
+}
+
+
 async function upsertProblem() {
   const id = el('problemId').value.trim();
   if (!id) return;
@@ -69,3 +83,4 @@ el('changeStatusBtn').onclick = changeStatus;
 el('pickBestBtn').onclick = pickBest;
 el('runRatingBtn').onclick = runRating;
 el('loadSubmissionsBtn').onclick = loadForGrading;
+initAdminTabs();
