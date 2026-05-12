@@ -1,16 +1,16 @@
-const firebaseConfig = window.SUOLLER_FIREBASE_CONFIG || {
-  apiKey: 'REPLACE_ME', authDomain: 'REPLACE_ME', projectId: 'REPLACE_ME', appId: 'REPLACE_ME'
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const fn = firebase.app().functions('us-central1');
+import { auth, db, fn, googleProvider, now } from './firebase.js';
+import {
+  collection, doc, getDocs, query, setDoc, where
+} from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
+import { onAuthStateChanged, signInWithPopup } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
+import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-functions.js';
+
 const el = (id) => document.getElementById(id);
 
 async function upsertProblem() {
   const id = el('problemId').value.trim();
   if (!id) return;
-  await db.collection('problems').doc(id).set({
+  await setDoc(doc(db, 'problems', id), {
     weekLabel: el('weekLabel').value,
     setterName: el('setterName').value,
     setterUid: el('setterUid').value,
@@ -19,28 +19,28 @@ async function upsertProblem() {
     officialSolution: el('officialSolution').value,
     status: 'scheduled',
     ratingUpdated: false,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    updatedAt: now()
   }, { merge: true });
   alert('saved');
 }
 
 async function changeStatus() {
-  await db.collection('problems').doc(el('targetProblemId').value.trim()).set({ status: el('nextStatus').value }, { merge: true });
+  await setDoc(doc(db, 'problems', el('targetProblemId').value.trim()), { status: el('nextStatus').value }, { merge: true });
 }
 
 async function pickBest() {
-  await db.collection('problems').doc(el('targetProblemId').value.trim()).set({ bestSubmissionId: el('bestSubmissionId').value.trim() }, { merge: true });
+  await setDoc(doc(db, 'problems', el('targetProblemId').value.trim()), { bestSubmissionId: el('bestSubmissionId').value.trim() }, { merge: true });
 }
 
 async function runRating() {
-  const callable = fn.httpsCallable('runRatingUpdate');
+  const callable = httpsCallable(fn, 'runRatingUpdate');
   const result = await callable({ problemId: el('targetProblemId').value.trim() });
   alert(JSON.stringify(result.data));
 }
 
 async function loadForGrading() {
   const problemId = el('gradingProblemId').value.trim();
-  const snap = await db.collection('submissions').where('problemId', '==', problemId).get();
+  const snap = await getDocs(query(collection(db, 'submissions'), where('problemId', '==', problemId)));
   el('gradingBody').innerHTML = snap.docs.map((d) => {
     const s = d.data();
     return `<tr>
@@ -56,12 +56,12 @@ async function loadForGrading() {
 window.gradeSubmission = async (id) => {
   const score = Number(el(`score_${id}`).value);
   const graderComment = el(`comment_${id}`).value;
-  await db.collection('submissions').doc(id).set({ score, graderComment, gradedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, 'submissions', id), { score, graderComment, gradedAt: now() }, { merge: true });
 };
 
-auth.onAuthStateChanged((u) => {
+onAuthStateChanged(auth, (u) => {
   el('adminAuthState').textContent = u ? `${u.displayName || u.uid} 로그인` : '로그인이 필요합니다';
-  if (!u) auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  if (!u) signInWithPopup(auth, googleProvider);
 });
 
 el('upsertProblemBtn').onclick = upsertProblem;
