@@ -1,9 +1,15 @@
 body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f7f7fb; color: #111; }
-.topbar { display:flex; justify-content: space-between; padding: 12px 20px; background:#fff; border-bottom:1px solid #ddd; }
-nav a { margin-left: 12px; text-decoration: none; color: #1f3a8a; }
-.container { max-width: 920px; margin: 20px auto; padding: 0 12px; }
+.topbar { display:flex; justify-content: space-between; align-items:center; gap:16px; padding: 12px 20px; background:#fff; border-bottom:1px solid #ddd; }
+nav a { margin-right: 12px; text-decoration: none; color: #1f3a8a; }
+.auth-row { display:flex; gap:8px; align-items:center; font-size:13px; }
+.container { max-width: 1100px; margin: 20px auto; padding: 0 12px; }
 .card { background:#fff; border:1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-textarea { width:100%; min-height:220px; margin:8px 0; }
-.status strong { color:#065f46; }
+textarea, input, select, button { width:100%; padding:8px; margin:6px 0; box-sizing:border-box; }
+textarea { min-height:180px; }
+.status strong { color:#065f46; text-transform:uppercase; }
+.statement { line-height:1.55; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
 table { width:100%; border-collapse: collapse; }
-th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; vertical-align:top; }
+.muted { color:#666; font-size: 12px; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
