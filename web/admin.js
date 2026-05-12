@@ -1,4 +1,4 @@
-const firebaseConfig = window.WEEKLY_BOUNTY_FIREBASE_CONFIG || {
+const firebaseConfig = window.SUOLLER_FIREBASE_CONFIG || {
   apiKey: 'REPLACE_ME', authDomain: 'REPLACE_ME', projectId: 'REPLACE_ME', appId: 'REPLACE_ME'
 };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
