@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WeeklyBounty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
   <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
@@ -11,43 +14,52 @@
   <script defer src="app.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <h1>WeeklyBounty</h1>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="topbar glass">
+    <div class="brand-wrap">
+      <p class="kicker">Math Challenge Platform</p>
+      <h1>WeeklyBounty</h1>
+    </div>
     <nav>
       <a href="#problem">이번 주 문제</a>
       <a href="#archive">아카이브</a>
       <a href="#leaderboard">리더보드</a>
-      <a href="admin.html">Admin/Setter</a>
+      <a class="admin-link" href="admin.html">Admin/Setter</a>
     </nav>
     <div class="auth-row">
       <span id="authState">로그아웃 상태</span>
-      <button id="loginBtn">Google 로그인</button>
-      <button id="logoutBtn" hidden>로그아웃</button>
+      <button id="loginBtn" class="btn btn-primary">Google 로그인</button>
+      <button id="logoutBtn" class="btn btn-secondary" hidden>로그아웃</button>
     </div>
   </header>
 
   <main class="container">
-    <section id="problem" class="card">
-      <p class="status">Status: <strong id="statusBadge">-</strong></p>
+    <section id="problem" class="card problem-card glass">
+      <div class="problem-header-row">
+        <p class="status">Status: <strong id="statusBadge">-</strong></p>
+        <span class="pill">Weekly Featured</span>
+      </div>
       <h2 id="problemTitle">문제 로딩 중...</h2>
       <p id="problemMeta" class="meta"></p>
       <article id="problemStatement" class="statement"></article>
     </section>
 
-    <section class="card">
+    <section class="card glass">
       <h3>내 제출 (Markdown + LaTeX)</h3>
       <textarea id="submissionInput" placeholder="증명/아이디어를 작성하세요..."></textarea>
-      <label><input id="publicToggle" type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
-      <div><button id="saveSubmissionBtn">저장/수정</button></div>
+      <label class="toggle-row"><input id="publicToggle" type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
+      <div class="action-row"><button id="saveSubmissionBtn" class="btn btn-primary">저장/수정</button></div>
       <small id="submissionNote"></small>
     </section>
 
-    <section id="leaderboard" class="card">
+    <section id="leaderboard" class="card glass">
       <h3>전체 리더보드 (Published 결과 기준)</h3>
       <ol id="leaderboardList"></ol>
     </section>
 
-    <section id="archive" class="card">
+    <section id="archive" class="card glass">
       <h3>문제 아카이브</h3>
       <table>
         <thead><tr><th>Week</th><th>Setter</th><th>태그</th><th>공개일</th><th>상태</th></tr></thead>
