@@ -15,6 +15,14 @@
         { "fieldPath": "problemId", "order": "ASCENDING" },
         { "fieldPath": "score", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rating", "order": "DESCENDING" },
+        { "fieldPath": "nickname", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

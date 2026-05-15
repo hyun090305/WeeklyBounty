@@ -107,6 +107,12 @@ async function runRating() {
   alert(JSON.stringify(result.data));
 }
 
+async function syncUsers() {
+  const callable = httpsCallable(fn, 'syncUsersFromAuth');
+  const result = await callable({});
+  alert(`동기화 완료: ${result.data.synced}명`);
+}
+
 async function loadForGrading() {
   const problemId = el('gradingProblemId').value.trim();
   const snap = await getDocs(query(collection(db, 'submissions'), where('problemId', '==', problemId)));
@@ -137,6 +143,7 @@ el('upsertProblemBtn').onclick = upsertProblem;
 el('changeStatusBtn').onclick = changeStatus;
 el('pickBestBtn').onclick = pickBest;
 el('runRatingBtn').onclick = runRating;
+el('syncUsersBtn').onclick = syncUsers;
 el('loadSubmissionsBtn').onclick = loadForGrading;
 el('weekRange').onchange = updateGeneratedProblemId;
 buildWeekOptions();

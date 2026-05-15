@@ -58,8 +58,8 @@ exports.runRatingUpdate = onCall(async (request) => {
       const r = ratings[id];
       const si = sMap[id] ?? 0;
       const e = 1 / (1 + Math.pow(10, (avgRating - r) / 400));
-      const p = 0.25 + 0.75 * si;
-      let delta = Math.round(24 * ((0.6 * (p - e)) + (0.4 * (si - meanS))));
+      const p = 0.2 + 0.8 * si;
+      let delta = Math.round(4 + 20 * (p - e) + 8 * (si - meanS));
       if (si === 0 && delta > 0) delta = 0;
       delta = Math.max(-16, Math.min(24, delta));
       deltas[id] = delta;
@@ -80,4 +80,40 @@ exports.runRatingUpdate = onCall(async (request) => {
     tx.set(problemRef, { ratingUpdated: true }, { merge: true });
     return { ok: true, skipped: false, deltasCount: Object.keys(deltas).length };
   });
+});
+
+exports.syncUsersFromAuth = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Login required');
+
+  const roleSnap = await db.collection('roles').doc(uid).get();
+  if (!roleSnap.exists || roleSnap.data().isAdmin !== true) {
+    throw new HttpsError('permission-denied', 'Admin only');
+  }
+
+  let pageToken;
+  let synced = 0;
+
+  do {
+    const page = await admin.auth().listUsers(1000, pageToken);
+    await Promise.all(page.users.map(async (userRecord) => {
+      const hasGoogleProvider = (userRecord.providerData || []).some((p) => p.providerId === 'google.com');
+      if (!hasGoogleProvider) return;
+      const createdAt = userRecord.metadata.creationTime ? new Date(userRecord.metadata.creationTime) : null;
+      await db.collection('users').doc(userRecord.uid).set({
+        displayName: userRecord.displayName || '',
+        nickname: userRecord.displayName || userRecord.email || userRecord.uid,
+        email: userRecord.email || '',
+        photoURL: userRecord.photoURL || '',
+        rating: 1200,
+        peakRating: 1200,
+        createdAt: createdAt || admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      synced += 1;
+    }));
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  return { ok: true, synced };
 });
