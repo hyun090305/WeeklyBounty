@@ -7,6 +7,50 @@ import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.13.0/fireba
 
 const el = (id) => document.getElementById(id);
 
+function formatDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function weekNumber(date) {
+  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+}
+
+function buildWeekOptions() {
+  const select = el('weekRange');
+  if (!select) return;
+  const monday = startOfWeek(new Date());
+  const options = [];
+  for (let i = -8; i <= 12; i += 1) {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() + (i * 7));
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const id = `${start.getFullYear()}w${String(weekNumber(start)).padStart(2, '0')}`;
+    const label = `${formatDate(start)} ~ ${formatDate(end)}`;
+    options.push(`<option value="${id}" ${i === 0 ? 'selected' : ''}>${label}</option>`);
+  }
+  select.innerHTML = options.join('');
+  updateGeneratedProblemId();
+}
+
+function updateGeneratedProblemId() {
+  const id = el('weekRange')?.value || '';
+  el('generatedProblemId').value = id;
+}
+
 function initAdminTabs() {
   const tabs = document.querySelectorAll('.admin-tab');
   const panes = document.querySelectorAll('.admin-pane');
@@ -22,12 +66,14 @@ function initAdminTabs() {
 
 
 async function upsertProblem() {
-  const id = el('problemId').value.trim();
+  const id = el('weekRange').value.trim();
   if (!id) return;
+  const user = auth.currentUser;
+  const selectedWeekText = el('weekRange').selectedOptions[0]?.textContent || '';
   await setDoc(doc(db, 'problems', id), {
-    weekLabel: el('weekLabel').value,
-    setterName: el('setterName').value,
-    setterUid: el('setterUid').value,
+    weekLabel: selectedWeekText,
+    setterName: user?.displayName || 'unknown',
+    setterUid: user?.uid || '',
     tags: el('tags').value.split(',').map((x) => x.trim()).filter(Boolean),
     statement: el('statement').value,
     officialSolution: el('officialSolution').value,
@@ -83,4 +129,6 @@ el('changeStatusBtn').onclick = changeStatus;
 el('pickBestBtn').onclick = pickBest;
 el('runRatingBtn').onclick = runRating;
 el('loadSubmissionsBtn').onclick = loadForGrading;
+el('weekRange').onchange = updateGeneratedProblemId;
+buildWeekOptions();
 initAdminTabs();
