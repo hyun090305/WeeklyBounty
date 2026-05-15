@@ -139,11 +139,12 @@ async function initializeProblemView() {
 }
 
 async function loadLeaderboard() {
-  const q = query(collection(db, 'users'), orderBy('nickname', 'asc'), limit(500));
+  const q = query(collection(db, 'users'), orderBy('rating', 'desc'), orderBy('nickname', 'asc'), limit(500));
   const snap = await getDocs(q);
-  el('leaderboardList').innerHTML = snap.docs.map((d) => {
+  el('leaderboardList').innerHTML = snap.docs.map((d, idx) => {
     const u = d.data();
-    return `<li>${u.nickname || u.displayName || d.id} - ${u.score ?? 0}점</li>`;
+    const rating = Number.isFinite(u.rating) ? u.rating : 1200;
+    return `<li>#${idx + 1} ${u.nickname || u.displayName || d.id} - ${rating}</li>`;
   }).join('');
 }
 
