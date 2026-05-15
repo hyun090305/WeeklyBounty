@@ -10,20 +10,53 @@ let currentProblem = null;
 
 function statusText(problem) { return problem?.status || 'scheduled'; }
 
+function currentWeekProblemId(date = new Date()) {
+  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+  return `${target.getUTCFullYear()}w${String(week).padStart(2, '0')}`;
+}
+
+function renderStatementWithLatex(text = '') {
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+  el('problemStatement').innerHTML = escaped;
+  if (window.renderMathInElement) {
+    window.renderMathInElement(el('problemStatement'), {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ],
+      throwOnError: false
+    });
+  }
+}
+
 async function loadCurrentProblem() {
-  const q = query(
-    collection(db, 'problems'),
-    where('status', 'in', ['open', 'closed', 'grading', 'published']),
-    orderBy('publishedAt', 'desc'),
-    limit(1)
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return;
-  currentProblem = { id: snap.docs[0].id, ...snap.docs[0].data() };
+  const weekId = currentWeekProblemId();
+  const todayProblemDoc = await getDoc(doc(db, 'problems', weekId));
+
+  if (!todayProblemDoc.exists()) {
+    currentProblem = null;
+    el('statusBadge').textContent = '-';
+    el('problemTitle').textContent = '아직 이번 주 문제가 올라오지 않은 것 같아요.';
+    el('problemMeta').textContent = `조회 주차: ${weekId}`;
+    renderStatementWithLatex('');
+    return;
+  }
+
+  currentProblem = { id: todayProblemDoc.id, ...todayProblemDoc.data() };
   el('statusBadge').textContent = statusText(currentProblem);
   el('problemTitle').textContent = `${currentProblem.weekLabel || currentProblem.id} by ${currentProblem.setterName || 'unknown'}`;
   el('problemMeta').textContent = `태그: ${(currentProblem.tags || []).join(', ')} | 마감: ${currentProblem.closeAt || '-'}`;
-  el('problemStatement').textContent = currentProblem.statement || '';
+  renderStatementWithLatex(currentProblem.statement || currentProblem.statementMd || '');
 }
 
 async function loadArchive() {
