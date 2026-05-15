@@ -23,9 +23,8 @@
       <h1>수올러 (Suoller)</h1>
     </div>
     <nav>
-      <a href="#problem">이번 주 문제</a>
-      <a href="#archive">아카이브</a>
-      <a href="#leaderboard">리더보드</a>
+      <button class="tab-btn active" data-tab="problem">문제</button>
+      <button class="tab-btn" data-tab="leaderboard">리더보드</button>
       <a class="admin-link" href="admin.html">Admin/Setter</a>
     </nav>
     <div class="auth-row">
@@ -35,37 +34,48 @@
     </div>
   </header>
 
+  
   <main class="container">
-    <section id="problem" class="card problem-card glass">
-      <div class="problem-header-row">
-        <p class="status">Status: <strong id="statusBadge">-</strong></p>
-        <span class="pill">Weekly Featured</span>
-      </div>
-      <h2 id="problemTitle">문제 로딩 중...</h2>
-      <p id="problemMeta" class="meta"></p>
-      <article id="problemStatement" class="statement"></article>
+    <section class="tab-pane" data-pane="problem">
+      <section id="problem" class="card problem-card glass">
+        <div class="problem-header-row">
+          <button id="prevWeekBtn" class="week-nav-btn" type="button">←</button>
+          <div class="problem-center">
+            <p class="status">Status: <strong id="statusBadge">-</strong></p>
+            <h2 id="problemTitle">문제 로딩 중...</h2>
+            <p id="problemMeta" class="meta"></p>
+          </div>
+          <button id="nextWeekBtn" class="week-nav-btn" type="button">→</button>
+        </div>
+        <div class="problem-subheader">
+          <span class="pill">Weekly Featured</span>
+          <span id="weekNavLabel" class="week-label">-</span>
+        </div>
+        <article id="problemStatement" class="statement"></article>
+      </section>
+
+      <section class="card glass">
+        <h3>내 제출 (Markdown + LaTeX)</h3>
+        <textarea id="submissionInput" placeholder="증명/아이디어를 작성하세요..."></textarea>
+        <label class="toggle-row"><input id="publicToggle" type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
+        <div class="action-row"><button id="saveSubmissionBtn" class="btn btn-primary">저장/수정</button></div>
+        <small id="submissionNote"></small>
+      </section>
+
+      <section id="archive" class="card glass">
+        <h3>문제 아카이브</h3>
+        <table>
+          <thead><tr><th>Week</th><th>Setter</th><th>태그</th><th>공개일</th><th>상태</th></tr></thead>
+          <tbody id="archiveBody"></tbody>
+        </table>
+      </section>
     </section>
 
-    <section class="card glass">
-      <h3>내 제출 (Markdown + LaTeX)</h3>
-      <textarea id="submissionInput" placeholder="증명/아이디어를 작성하세요..."></textarea>
-      <label class="toggle-row"><input id="publicToggle" type="checkbox" checked /> 마감 후 공개 제출 목록에 내 풀이 공개</label>
-      <div class="action-row"><button id="saveSubmissionBtn" class="btn btn-primary">저장/수정</button></div>
-      <small id="submissionNote"></small>
-    </section>
-
-    <section id="leaderboard" class="card glass">
-      <h3>전체 리더보드 (Published 결과 기준)</h3>
+    <section id="leaderboard" class="card glass tab-pane" data-pane="leaderboard" hidden>
+      <h3>전체 리더보드 (모든 회원 표시, 기본 0점)</h3>
       <ol id="leaderboardList"></ol>
     </section>
-
-    <section id="archive" class="card glass">
-      <h3>문제 아카이브</h3>
-      <table>
-        <thead><tr><th>Week</th><th>Setter</th><th>태그</th><th>공개일</th><th>상태</th></tr></thead>
-        <tbody id="archiveBody"></tbody>
-      </table>
-    </section>
   </main>
+
 </body>
 </html>
