@@ -27,10 +27,10 @@
       <div id="problemEditor" class="admin-pane active" role="tabpanel">
         <h2>문제 생성/수정</h2>
         <div class="form-grid compact-grid">
-          <label>Problem ID<input id="problemId" placeholder="예: 2026w20" /></label>
-          <label>Week Label<input id="weekLabel" placeholder="예: Week 20" /></label>
-          <label>Setter 이름<input id="setterName" placeholder="예: 홍길동" /></label>
-          <label>Setter UID<input id="setterUid" placeholder="예: abc123" /></label>
+          <label>주차 선택
+            <select id="weekRange"></select>
+          </label>
+          <label>생성될 Problem ID<input id="generatedProblemId" readonly /></label>
         </div>
         <label>태그 (쉼표 구분)<input id="tags" placeholder="예: nt, geo" /></label>
         <label>문제 본문 (Markdown + LaTeX)<textarea id="statement" placeholder="문제 본문을 입력하세요."></textarea></label>
