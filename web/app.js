@@ -1,12 +1,14 @@
 import { auth, db, googleProvider, now } from './firebase.js';
 import {
-  collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc, where
+  collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc
 } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
 
 const el = (id) => document.getElementById(id);
 let currentUser = null;
 let currentProblem = null;
+let problems = [];
+let selectedProblemIndex = -1;
 
 function statusText(problem) { return effectiveStatus(problem); }
 
@@ -44,7 +46,6 @@ function effectiveStatus(problem) {
   return problem.publishedAt ? 'published' : 'grading';
 }
 
-
 function currentWeekProblemId(date = new Date()) {
   const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = target.getUTCDay() || 7;
@@ -74,45 +75,81 @@ function renderStatementWithLatex(text = '') {
   }
 }
 
-async function loadCurrentProblem() {
-  const weekId = currentWeekProblemId();
-  const todayProblemDoc = await getDoc(doc(db, 'problems', weekId));
+async function loadProblems() {
+  const q = query(collection(db, 'problems'), orderBy('id', 'desc'), limit(100));
+  const snap = await getDocs(q);
+  problems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
 
-  if (!todayProblemDoc.exists()) {
-    currentProblem = null;
-    el('statusBadge').textContent = '-';
-    el('problemTitle').textContent = '아직 이번 주 문제가 올라오지 않은 것 같아요.';
-    el('problemMeta').textContent = `조회 주차: ${weekId}`;
-    renderStatementWithLatex('');
-    return;
-  }
+function renderArchive() {
+  el('archiveBody').innerHTML = problems.map((p) => {
+    return `<tr><td>${p.weekLabel || p.id}</td><td>${p.setterName || '-'}</td><td>${(p.tags || []).join(', ')}</td><td>${p.publishedAt || '-'}</td><td>${effectiveStatus(p)}</td></tr>`;
+  }).join('');
+}
 
-  currentProblem = { id: todayProblemDoc.id, ...todayProblemDoc.data() };
+async function selectProblemByIndex(index) {
+  if (index < 0 || index >= problems.length) return;
+  selectedProblemIndex = index;
+  currentProblem = problems[index];
   el('statusBadge').textContent = statusText(currentProblem);
   el('problemTitle').textContent = `${currentProblem.weekLabel || currentProblem.id} by ${currentProblem.setterName || 'unknown'}`;
   el('problemMeta').textContent = `태그: ${(currentProblem.tags || []).join(', ')} | 마감: ${currentProblem.closeAt || '-'}`;
   renderStatementWithLatex(currentProblem.statement || currentProblem.statementMd || '');
+  el('weekNavLabel').textContent = currentProblem.weekLabel || currentProblem.id;
+  el('prevWeekBtn').disabled = selectedProblemIndex >= problems.length - 1;
+  el('nextWeekBtn').disabled = selectedProblemIndex <= 0;
+  await loadMySubmission();
+  updateSubmissionAvailability();
 }
 
-async function loadArchive() {
-  const q = query(collection(db, 'problems'), orderBy('publishedAt', 'desc'), limit(40));
-  const snap = await getDocs(q);
-  el('archiveBody').innerHTML = snap.docs.map((d) => {
-    const p = d.data();
-    return `<tr><td>${p.weekLabel || d.id}</td><td>${p.setterName || '-'}</td><td>${(p.tags || []).join(', ')}</td><td>${p.publishedAt || '-'}</td><td>${effectiveStatus({ id: d.id, ...p })}</td></tr>`;
-  }).join('');
+function updateSubmissionAvailability() {
+  const canSubmit = currentUser && currentProblem && currentProblem.id === currentWeekProblemId() && effectiveStatus(currentProblem) === 'open';
+  el('submissionInput').disabled = !canSubmit;
+  el('publicToggle').disabled = !canSubmit;
+  el('saveSubmissionBtn').disabled = !canSubmit;
+  if (!currentUser) {
+    el('submissionNote').textContent = '로그인 후 제출할 수 있습니다.';
+  } else if (!currentProblem) {
+    el('submissionNote').textContent = '제출 가능한 문제가 없습니다.';
+  } else if (currentProblem.id !== currentWeekProblemId()) {
+    el('submissionNote').textContent = '오늘 기준 이번 주 문제가 아닐 때는 제출 입력이 비활성화됩니다.';
+  } else if (effectiveStatus(currentProblem) !== 'open') {
+    el('submissionNote').textContent = '현재 상태에서는 제출할 수 없습니다.';
+  } else {
+    el('submissionNote').textContent = '';
+  }
+}
+
+async function initializeProblemView() {
+  await loadProblems();
+  renderArchive();
+  if (!problems.length) {
+    currentProblem = null;
+    el('statusBadge').textContent = '-';
+    el('problemTitle').textContent = '문제가 아직 없습니다.';
+    el('problemMeta').textContent = '-';
+    renderStatementWithLatex('');
+    el('weekNavLabel').textContent = '-';
+    updateSubmissionAvailability();
+    return;
+  }
+  const thisWeek = currentWeekProblemId();
+  const foundIndex = problems.findIndex((p) => p.id === thisWeek);
+  await selectProblemByIndex(foundIndex >= 0 ? foundIndex : 0);
 }
 
 async function loadLeaderboard() {
-  const q = query(collection(db, 'users'), orderBy('rating', 'desc'), limit(30));
+  const q = query(collection(db, 'users'), orderBy('nickname', 'asc'), limit(500));
   const snap = await getDocs(q);
   el('leaderboardList').innerHTML = snap.docs.map((d) => {
     const u = d.data();
-    return `<li>${u.nickname || d.id} - ${u.rating || 1200}</li>`;
+    return `<li>${u.nickname || u.displayName || d.id} - ${u.score ?? 0}점</li>`;
   }).join('');
 }
 
 async function loadMySubmission() {
+  el('submissionInput').value = '';
+  el('publicToggle').checked = true;
   if (!currentUser || !currentProblem) return;
   const subId = `${currentProblem.id}_${currentUser.uid}`;
   const snap = await getDoc(doc(db, 'submissions', subId));
@@ -124,6 +161,7 @@ async function loadMySubmission() {
 
 async function saveSubmission() {
   if (!currentUser || !currentProblem) return alert('로그인 후 이용하세요.');
+  if (currentProblem.id !== currentWeekProblemId()) return alert('이번 주 문제에서만 제출 가능합니다.');
   if (effectiveStatus(currentProblem) !== 'open') return alert('open 상태에서만 제출/수정 가능합니다.');
   const content = el('submissionInput').value.trim();
   if (content.length < 20) return alert('증명/아이디어 중심으로 충분히 작성해주세요.');
@@ -138,16 +176,30 @@ async function saveSubmission() {
   el('submissionNote').textContent = '저장되었습니다.';
 }
 
+function activateTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-pane').forEach((pane) => {
+    pane.hidden = pane.dataset.pane !== tabName;
+  });
+}
+
 onAuthStateChanged(auth, async (u) => {
   currentUser = u;
   el('authState').textContent = u ? `${u.displayName || u.uid} 로그인` : '로그아웃 상태';
   el('loginBtn').hidden = !!u;
   el('logoutBtn').hidden = !u;
-  await loadCurrentProblem();
-  await Promise.all([loadArchive(), loadLeaderboard()]);
-  await loadMySubmission();
+  await initializeProblemView();
+  await loadLeaderboard();
+  updateSubmissionAvailability();
 });
 
 el('loginBtn').onclick = () => signInWithPopup(auth, googleProvider);
 el('logoutBtn').onclick = () => signOut(auth);
 el('saveSubmissionBtn').onclick = saveSubmission;
+el('prevWeekBtn').onclick = () => selectProblemByIndex(selectedProblemIndex + 1);
+el('nextWeekBtn').onclick = () => selectProblemByIndex(selectedProblemIndex - 1);
+document.querySelectorAll('.tab-btn').forEach((btn) => {
+  btn.onclick = () => activateTab(btn.dataset.tab);
+});
