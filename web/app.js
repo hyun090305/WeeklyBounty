@@ -8,7 +8,42 @@ const el = (id) => document.getElementById(id);
 let currentUser = null;
 let currentProblem = null;
 
-function statusText(problem) { return problem?.status || 'scheduled'; }
+function statusText(problem) { return effectiveStatus(problem); }
+
+function parseWeekId(weekId = '') {
+  const m = String(weekId).match(/^(\d{4})w(\d{2})$/);
+  if (!m) return null;
+  return { year: Number(m[1]), week: Number(m[2]) };
+}
+
+function isoWeekBoundsUtc(year, week) {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const week1Monday = new Date(jan4);
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
+  const weekStart = new Date(week1Monday);
+  weekStart.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  return { weekStart, weekEnd };
+}
+
+function todayUtcDate() {
+  const n = new Date();
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+}
+
+function effectiveStatus(problem) {
+  if (!problem) return 'scheduled';
+  const parsed = parseWeekId(problem.id);
+  if (!parsed) return problem.status || 'scheduled';
+  const { weekStart, weekEnd } = isoWeekBoundsUtc(parsed.year, parsed.week);
+  const today = todayUtcDate();
+  if (today < weekStart) return 'scheduled';
+  if (today <= weekEnd) return problem.manualClosed === true ? 'closed' : 'open';
+  return problem.publishedAt ? 'published' : 'grading';
+}
+
 
 function currentWeekProblemId(date = new Date()) {
   const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -64,7 +99,7 @@ async function loadArchive() {
   const snap = await getDocs(q);
   el('archiveBody').innerHTML = snap.docs.map((d) => {
     const p = d.data();
-    return `<tr><td>${p.weekLabel || d.id}</td><td>${p.setterName || '-'}</td><td>${(p.tags || []).join(', ')}</td><td>${p.publishedAt || '-'}</td><td>${p.status}</td></tr>`;
+    return `<tr><td>${p.weekLabel || d.id}</td><td>${p.setterName || '-'}</td><td>${(p.tags || []).join(', ')}</td><td>${p.publishedAt || '-'}</td><td>${effectiveStatus({ id: d.id, ...p })}</td></tr>`;
   }).join('');
 }
 
@@ -89,7 +124,7 @@ async function loadMySubmission() {
 
 async function saveSubmission() {
   if (!currentUser || !currentProblem) return alert('로그인 후 이용하세요.');
-  if (currentProblem.status !== 'open') return alert('open 상태에서만 제출/수정 가능합니다.');
+  if (effectiveStatus(currentProblem) !== 'open') return alert('open 상태에서만 제출/수정 가능합니다.');
   const content = el('submissionInput').value.trim();
   if (content.length < 20) return alert('증명/아이디어 중심으로 충분히 작성해주세요.');
   const subId = `${currentProblem.id}_${currentUser.uid}`;
