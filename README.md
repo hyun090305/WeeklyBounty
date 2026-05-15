@@ -5,14 +5,14 @@
 ## 구현 범위 (현재)
 
 - Public 페이지
-  - 현재 주차 문제 표시 (status / setter / tags / 마감 정보)
+  - 현재 주차 문제 표시 (자동 status / setter / tags / 마감 정보)
   - Google 로그인/로그아웃
   - Markdown+LaTeX 텍스트 기반 제출 저장/수정 (open 상태에서만)
   - 전체 리더보드 조회
   - 문제 아카이브 조회
 - Admin/Setter 페이지
   - 문제 생성/수정 (문제 본문, 태그, 해설, setter 정보)
-  - 문제 상태 전환 (scheduled/open/closed/grading/published)
+  - 주차/날짜 기반 자동 상태 산정 + 당주차 수동 closed + published 처리
   - 제출 익명 목록 기반 채점 (0~7 정수점)
   - Best Solution 지정
   - rating 업데이트 Cloud Function 실행

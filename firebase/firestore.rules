@@ -24,7 +24,7 @@ service cloud.firestore {
     }
 
     match /problems/{problemId} {
-      allow read: if resource.data.status == 'published' || (isSignedIn() && (isAdmin() || resource.data.setterUid == request.auth.uid));
+      allow read: if resource.data.publishedAt != null || (isSignedIn() && (isAdmin() || resource.data.setterUid == request.auth.uid));
       allow create: if isSignedIn() && (isAdmin() || isSetter());
       allow update: if isAdmin() || (isProblemSetter(problemId) && !( 'status' in request.resource.data && request.resource.data.status != resource.data.status));
       allow delete: if isAdmin();
@@ -37,24 +37,24 @@ service cloud.firestore {
         && request.resource.data.problemId is string
         && !exists(/databases/$(database)/documents/submissions/$(request.resource.data.problemId + '_' + request.auth.uid))
         && request.resource.id == request.resource.data.problemId + '_' + request.auth.uid
-        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.status == 'open';
+        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.manualClosed != true;
 
       allow read: if isSignedIn() && (
         resource.data.authorUid == request.auth.uid
         || isAdmin()
         || isProblemSetter(resource.data.problemId)
-        || (get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'published' && resource.data.isPublic == true)
+        || (get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.publishedAt != null && resource.data.isPublic == true)
       );
 
       allow update: if isSignedIn() && (
         (resource.data.authorUid == request.auth.uid
-          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'open'
+          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.manualClosed != true
           && !('score' in request.resource.data)
           && !('graderComment' in request.resource.data)
           && !('gradedAt' in request.resource.data)
         )
         || ((isAdmin() || isProblemSetter(resource.data.problemId))
-          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.status == 'grading'
+          && get(/databases/$(database)/documents/problems/$(resource.data.problemId)).data.publishedAt == null
           && request.resource.data.score is int
           && request.resource.data.score >= 0
           && request.resource.data.score <= 7)
@@ -73,7 +73,7 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.problemId is string
-        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.status == 'published'
+        && get(/databases/$(database)/documents/problems/$(request.resource.data.problemId)).data.publishedAt != null
         && (request.resource.data.submissionId == null || (
           get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.problemId == request.resource.data.problemId
           && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.isPublic == true

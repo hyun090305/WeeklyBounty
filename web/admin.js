@@ -80,7 +80,7 @@ async function upsertProblem() {
     tags: el('tags').value.split(',').map((x) => x.trim()).filter(Boolean),
     statement: el('statement').value,
     officialSolution: el('officialSolution').value,
-    status: 'scheduled',
+    manualClosed: false,
     ratingUpdated: false,
     updatedAt: now()
   }, { merge: true });
@@ -88,7 +88,13 @@ async function upsertProblem() {
 }
 
 async function changeStatus() {
-  await setDoc(doc(db, 'problems', el('targetProblemId').value.trim()), { status: el('nextStatus').value }, { merge: true });
+  const status = el('nextStatus').value;
+  const patch = {};
+  if (status === 'open') patch.manualClosed = false;
+  if (status === 'closed') patch.manualClosed = true;
+  if (status === 'published') patch.publishedAt = now();
+  if (status === 'grading') patch.publishedAt = null;
+  await setDoc(doc(db, 'problems', el('targetProblemId').value.trim()), patch, { merge: true });
 }
 
 async function pickBest() {
