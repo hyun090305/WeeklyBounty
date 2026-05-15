@@ -32,7 +32,7 @@ function buildWeekOptions() {
   const select = el('weekRange');
   if (!select) return;
   const monday = startOfWeek(new Date());
-  const options = [];
+  select.innerHTML = '';
   for (let i = -8; i <= 12; i += 1) {
     const start = new Date(monday);
     start.setDate(monday.getDate() + (i * 7));
@@ -40,9 +40,12 @@ function buildWeekOptions() {
     end.setDate(start.getDate() + 6);
     const id = `${start.getFullYear()}w${String(weekNumber(start)).padStart(2, '0')}`;
     const label = `${formatDate(start)} ~ ${formatDate(end)}`;
-    options.push(`<option value="${id}" ${i === 0 ? 'selected' : ''}>${label}</option>`);
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = label;
+    option.selected = i === 0;
+    select.appendChild(option);
   }
-  select.innerHTML = options.join('');
   updateGeneratedProblemId();
 }
 
